@@ -1,0 +1,8 @@
+{
+  "_comment": "Simulated/Mock test fixture: Payload where all fields are null or empty.",
+  "conversation_id": null,
+  "agent_state": null,
+  "model": null,
+  "context_window": null,
+  "quota": null
+}

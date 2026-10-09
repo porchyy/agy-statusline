@@ -1,0 +1,16 @@
+{
+  "_comment": "Simulated/Mock test fixture: Payload without quota object (e.g. unmetered model or third-party API key).",
+  "conversation_id": "test-conv-002",
+  "agent_state": "thinking",
+  "model": {
+    "id": "claude-sonnet-5-5-high",
+    "display_name": "Claude Sonnet 5.5 (High)"
+  },
+  "context_window": {
+    "total_input_tokens": 45000,
+    "total_output_tokens": 1200,
+    "context_window_size": 200000,
+    "used_percentage": 23.10
+  },
+  "quota": null
+}

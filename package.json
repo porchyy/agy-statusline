@@ -1,0 +1,17 @@
+{
+  "name": "agy-statusline",
+  "version": "1.0.0",
+  "description": "Zero-dependency custom statusline for Antigravity CLI (AGY)",
+  "type": "module",
+  "main": "src/index.js",
+  "bin": {
+    "agy-statusline": "./src/index.js"
+  },
+  "scripts": {
+    "test": "node tests/run-tests.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "private": true
+}

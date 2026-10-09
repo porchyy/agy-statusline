@@ -1,0 +1,23 @@
+{
+  "_comment": "Simulated/Mock test fixture: Complete payload with all supported fields populated.",
+  "conversation_id": "test-conv-001",
+  "cwd": "A:\\test\\workspace",
+  "agent_state": "working",
+  "model": {
+    "id": "gemini-3.8-flash-high",
+    "display_name": "Gemini 3.8 Flash (High)"
+  },
+  "context_window": {
+    "total_input_tokens": 14250,
+    "total_output_tokens": 520,
+    "context_window_size": 1048576,
+    "used_percentage": 1.41,
+    "remaining_percentage": 98.59,
+    "exceeds_200k_tokens": false
+  },
+  "quota": {
+    "remaining_fraction": 0.85,
+    "reset_in_seconds": 7200,
+    "reset_time": "2026-10-09T12:00:00Z"
+  }
+}

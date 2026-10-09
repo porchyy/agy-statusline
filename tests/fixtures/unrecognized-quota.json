@@ -1,0 +1,14 @@
+{
+  "_comment": "Simulated/Mock test fixture: Payload where quota has an unrecognized format or string value.",
+  "conversation_id": "test-conv-006",
+  "agent_state": "idle",
+  "model": {
+    "display_name": "Gemini 3.8 Flash (High)"
+  },
+  "context_window": {
+    "used_percentage": 5.2,
+    "total_input_tokens": 52000,
+    "context_window_size": 1000000
+  },
+  "quota": "unsupported-string-value"
+}

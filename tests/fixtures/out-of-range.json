@@ -1,0 +1,17 @@
+{
+  "_comment": "Simulated/Mock test fixture: Payload with out-of-range percentage and invalid negative numbers.",
+  "conversation_id": "test-conv-005",
+  "agent_state": "working",
+  "model": {
+    "display_name": "Test Model"
+  },
+  "context_window": {
+    "used_percentage": 145.5,
+    "total_input_tokens": -500,
+    "context_window_size": 1000
+  },
+  "quota": {
+    "remaining_fraction": -0.8,
+    "reset_in_seconds": -100
+  }
+}

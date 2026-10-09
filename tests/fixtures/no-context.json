@@ -1,0 +1,14 @@
+{
+  "_comment": "Simulated/Mock test fixture: Payload before first token turn or without context_window.",
+  "conversation_id": "test-conv-003",
+  "agent_state": "initializing",
+  "model": {
+    "id": "gemini-3.8-flash-high",
+    "display_name": "Gemini 3.8 Flash (High)"
+  },
+  "context_window": null,
+  "quota": {
+    "remaining_fraction": 1.0,
+    "reset_in_seconds": 14400
+  }
+}
