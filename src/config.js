@@ -7,10 +7,18 @@ export const CONFIG = {
   // Progress bar dimensions
   progressBar: {
     length: 10,
-    filledGlyph: '=',
+    filledGlyph: '▰',
     emptyGlyph: '░',
     asciiFilledGlyph: '=',
     asciiEmptyGlyph: '-',
+  },
+
+  // Glyphs and icons
+  icons: {
+    model: '✦',
+    asciiModel: '*',
+    middleDot: '·',
+    asciiDot: '-',
   },
 
   // Agent state labels and icons
@@ -28,8 +36,8 @@ export const CONFIG = {
     idle: 'idle',
     thinking: 'thinking',
     working: 'working',
-    tool_use: 'tool',
-    initializing: 'init',
+    tool_use: 'tool_use',
+    initializing: 'initializing',
     unknown: 'ready',
   },
 

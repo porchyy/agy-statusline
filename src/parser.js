@@ -129,6 +129,28 @@ function parseContextWindow(contextWindow) {
     }
   }
 
+  // Fallback: If used tokens is missing but we have usedPercentage and windowSize
+  if (totalTokens === null && windowSize !== null && usedPercentage !== null) {
+    totalTokens = Math.round((windowSize * usedPercentage) / 100);
+  }
+
+  // 4. Remaining tokens calculation
+  let remainingTokens = null;
+  if (windowSize !== null && totalTokens !== null) {
+    remainingTokens = Math.max(0, windowSize - totalTokens);
+  } else if (typeof contextWindow.remaining_tokens === 'number' && Number.isFinite(contextWindow.remaining_tokens) && contextWindow.remaining_tokens >= 0) {
+    remainingTokens = Math.round(contextWindow.remaining_tokens);
+    if (windowSize !== null) {
+      remainingTokens = Math.min(windowSize, remainingTokens);
+      if (totalTokens === null) {
+        totalTokens = Math.max(0, windowSize - remainingTokens);
+        if (usedPercentage === null) {
+          usedPercentage = (totalTokens / windowSize) * 100;
+        }
+      }
+    }
+  }
+
   // If we have neither percentage nor token counts, context data is unusable
   if (usedPercentage === null && totalTokens === null) {
     return null;
@@ -138,6 +160,7 @@ function parseContextWindow(contextWindow) {
     usedPercentage: usedPercentage !== null ? Number(usedPercentage.toFixed(2)) : null,
     totalTokens,
     windowSize,
+    remainingTokens,
   };
 }
 

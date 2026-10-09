@@ -37,20 +37,15 @@ export function formatStatusline(parsed, options = {}) {
 
   // 1. Model Name Segment
   if (parsed?.model) {
-    const modelText = `${CONFIG.brackets.open}${parsed.model}${CONFIG.brackets.close}`;
+    const icon = useAscii ? CONFIG.icons.asciiModel : CONFIG.icons.model;
+    const modelText = `[${icon} ${parsed.model}]`;
     segments.push(colorize(modelText, CONFIG.ansi.cyan + CONFIG.ansi.bold, disableColor));
   }
 
   // 2. Agent State Segment
   if (parsed?.state) {
-    let stateText = '';
-    if (useAscii) {
-      const label = CONFIG.stateAscii[parsed.state] || parsed.state;
-      stateText = `[${label}]`;
-    } else {
-      const icon = CONFIG.stateIcons[parsed.state] || CONFIG.stateIcons.unknown;
-      stateText = `${icon} ${parsed.state}`;
-    }
+    const stateLabel = CONFIG.stateAscii[parsed.state] || parsed.state;
+    const stateText = `[Agent: ${stateLabel}]`;
     segments.push(colorize(stateText, CONFIG.ansi.gray, disableColor));
   }
 
@@ -59,65 +54,73 @@ export function formatStatusline(parsed, options = {}) {
     const ctx = parsed.context;
     const parts = [];
 
-    // Tokens string (e.g. 14.2k/1M or 14.2k)
-    if (ctx.totalTokens !== null && ctx.windowSize !== null) {
+    // Tokens string (e.g. 250k/1.0M used · 750k left, or fallback to 14.8k/1.0M / 14.8k)
+    const dot = useAscii ? CONFIG.icons.asciiDot : CONFIG.icons.middleDot;
+    if (ctx.totalTokens !== null && ctx.windowSize !== null && ctx.remainingTokens !== null) {
+      const usedStr = `${formatTokenNumber(ctx.totalTokens)}/${formatTokenNumber(ctx.windowSize)} used`;
+      const leftStr = `${formatTokenNumber(ctx.remainingTokens)} left`;
+      parts.push(`${usedStr} ${dot} ${leftStr}`);
+    } else if (ctx.totalTokens !== null && ctx.windowSize !== null) {
       parts.push(`${formatTokenNumber(ctx.totalTokens)}/${formatTokenNumber(ctx.windowSize)}`);
     } else if (ctx.totalTokens !== null) {
       parts.push(`${formatTokenNumber(ctx.totalTokens)}`);
     }
 
-    // Percentage string (e.g. 1.4%)
-    let pctText = '';
-    let barColor = CONFIG.ansi.green;
-
+    // Percentage string (e.g. 1.41%) and progress bar
     if (ctx.usedPercentage !== null) {
-      pctText = `(${ctx.usedPercentage}%)`;
-
-      // Select color based on warning/danger thresholds
+      let barColor = CONFIG.ansi.green;
       if (ctx.usedPercentage >= CONFIG.thresholds.context.danger) {
         barColor = CONFIG.ansi.red;
       } else if (ctx.usedPercentage >= CONFIG.thresholds.context.warning) {
         barColor = CONFIG.ansi.yellow;
       }
-      parts.push(pctText);
-    }
 
-    // Progress bar
-    if (ctx.usedPercentage !== null) {
+      parts.push(`(${ctx.usedPercentage}%)`);
+
+      // Progress bar without extra outer brackets
       const bar = renderProgressBar(ctx.usedPercentage, useAscii);
       parts.push(colorize(bar, barColor, disableColor));
     }
 
     if (parts.length > 0) {
-      const ctxLabel = colorize('Ctx:', CONFIG.ansi.bold, disableColor);
-      segments.push(`${ctxLabel} ${parts.join(' ')}`);
+      const ctxLabel = colorize('Context:', CONFIG.ansi.bold, disableColor);
+      segments.push(`[${ctxLabel} ${parts.join(' ')}]`);
     }
   }
 
   // 4. Quota Segment (Dynamic Collapse: ONLY rendered if quota data is present)
   if (parsed?.quota && parsed.quota.percentage !== null) {
     const q = parsed.quota;
-    let quotaColor = CONFIG.ansi.green;
+    const quotaParts = [];
 
+    let quotaColor = CONFIG.ansi.green;
     if (q.percentage <= CONFIG.thresholds.quota.danger) {
       quotaColor = CONFIG.ansi.red;
     } else if (q.percentage <= CONFIG.thresholds.quota.warning) {
       quotaColor = CONFIG.ansi.yellow;
     }
 
-    let quotaStr = `${q.percentage}%`;
-    quotaStr = colorize(quotaStr, quotaColor, disableColor);
+    // Remaining percentage
+    const remText = colorize(`${q.percentage}% left`, quotaColor, disableColor);
+    quotaParts.push(remText);
 
-    // Optional reset timer
-    let resetStr = '';
+    // Used percentage: 100 - remaining
+    const usedPercentage = Math.round((100 - q.percentage) * 10) / 10;
+    quotaParts.push(`Used ${usedPercentage}%`);
+
+    // Reset duration/time
     if (q.resetInSeconds !== null) {
-      resetStr = colorize(` (${formatDuration(q.resetInSeconds)})`, CONFIG.ansi.gray, disableColor);
-    } else if (q.resetTime) {
-      resetStr = colorize(` (${q.resetTime})`, CONFIG.ansi.gray, disableColor);
+      const durationText = formatDuration(q.resetInSeconds);
+      quotaParts.push(colorize(durationText, CONFIG.ansi.gray, disableColor));
+    } else if (typeof q.resetTime === 'string' && q.resetTime.trim().length > 0) {
+      const trimmed = q.resetTime.trim();
+      const resetText = trimmed.startsWith('resets') ? trimmed : `resets in ${trimmed}`;
+      quotaParts.push(colorize(resetText, CONFIG.ansi.gray, disableColor));
     }
 
+    const dot = useAscii ? CONFIG.icons.asciiDot : CONFIG.icons.middleDot;
     const quotaLabel = colorize('Quota:', CONFIG.ansi.bold, disableColor);
-    segments.push(`${quotaLabel} ${quotaStr}${resetStr}`);
+    segments.push(`[${quotaLabel} ${quotaParts.join(` ${dot} `)}]`);
   }
 
   // If no segments could be formed, return minimal fallback
@@ -149,32 +152,50 @@ function colorize(text, ansiCode, disableColor) {
 function renderProgressBar(percentage, useAscii) {
   const len = CONFIG.progressBar.length;
   const pct = Math.max(0, Math.min(100, percentage));
-  const filledCount = Math.round((pct / 100) * len);
+  let filledCount = Math.round((pct / 100) * len);
+  if (pct > 0 && filledCount === 0) {
+    filledCount = 1;
+  }
   const emptyCount = Math.max(0, len - filledCount);
 
   const filledChar = useAscii ? CONFIG.progressBar.asciiFilledGlyph : CONFIG.progressBar.filledGlyph;
   const emptyChar = useAscii ? CONFIG.progressBar.asciiEmptyGlyph : CONFIG.progressBar.emptyGlyph;
 
-  return `[${filledChar.repeat(filledCount)}${emptyChar.repeat(emptyCount)}]`;
+  return `${filledChar.repeat(filledCount)}${emptyChar.repeat(emptyCount)}`;
 }
 
 /**
- * Format raw numbers into compact readable representations (e.g. 14250 -> 14.3k, 1048576 -> 1M).
+ * Format raw numbers into compact readable representations (e.g. 14250 -> 14.3k, 1033806 -> 1.03M, 1000000 -> 1.0M).
  */
 export function formatTokenNumber(num) {
-  if (typeof num !== 'number' || !Number.isFinite(num)) {
+  if (typeof num !== 'number' || !Number.isFinite(num) || num <= 0) {
     return '0';
+  }
+
+  if (num >= 1000000000) {
+    const val = num / 1000000000;
+    const fixed2 = val.toFixed(2);
+    if (fixed2.endsWith('.00') || fixed2.endsWith('0')) {
+      return `${val.toFixed(1)}B`;
+    }
+    return `${fixed2}B`;
   }
 
   if (num >= 1000000) {
     const val = num / 1000000;
-    return `${val % 1 === 0 ? val : val.toFixed(1)}M`;
+    const fixed2 = val.toFixed(2);
+    if (fixed2.endsWith('.00') || fixed2.endsWith('0')) {
+      return `${val.toFixed(1)}M`;
+    }
+    return `${fixed2}M`;
   }
+
   if (num >= 1000) {
     const val = num / 1000;
     return `${val % 1 === 0 ? val : val.toFixed(1)}k`;
   }
-  return `${num}`;
+
+  return `${Math.round(num)}`;
 }
 
 /**
