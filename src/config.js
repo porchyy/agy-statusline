@@ -4,9 +4,25 @@
  */
 
 export const CONFIG = {
-  // Active visual theme: 'andrewii23' (coral minimal) or 'classic' (bracketed)
-  theme: 'andrewii23',
+  // Active visual theme: 'white' (white minimal), 'andrewii23' (coral minimal), or 'classic' (bracketed)
+  theme: 'white',
   multiline: false,
+
+  // Theme palettes
+  themes: {
+    white: {
+      barFilled: '\x1b[38;2;255;255;255m', // Pure Bright White
+      barEmpty: '\x1b[38;2;75;75;75m',      // Charcoal Dark Gray
+      text: '\x1b[38;2;255;255;255m',      // Crisp White
+      dim: '\x1b[38;2;160;160;160m',       // Muted Light Gray
+    },
+    andrewii23: {
+      barFilled: '\x1b[38;2;221;129;97m',  // Coral Truecolor
+      barEmpty: '\x1b[38;2;80;60;50m',      // Dark Coral
+      text: '\x1b[38;2;220;220;220m',      // Off-white
+      dim: '\x1b[2m',                      // Dim
+    },
+  },
 
   // Progress bar dimensions
   progressBar: {

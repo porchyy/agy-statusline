@@ -8,7 +8,7 @@ import path from 'node:path';
 import { execSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parsePayload } from '../src/parser.js';
-import { formatStatusline, formatTokenNumber } from '../src/formatter.js';
+import { formatStatusline, formatTokenNumber, renderProgressBar } from '../src/formatter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -347,6 +347,12 @@ assert(andrewMultiOut.includes('Current | '), '2b.8 Row 2 starts with Current qu
 // 2b.3 Dynamic collapse in Andrewii23
 const andrewNoQuotaOut = formatStatusline(noQuotaParsed, { noColor: true, theme: 'andrewii23' });
 assert(!andrewNoQuotaOut.includes('Quota'), '2b.9 Andrewii23 omits quota segment when absent');
+
+// 2b.4 White Theme Tests
+const whiteFullOut = formatStatusline(fullParsed, { noColor: false, theme: 'white' });
+assert(whiteFullOut.includes('\x1b[38;2;255;255;255m'), '2b.10 White theme includes Truecolor pure white ANSI sequence');
+const whiteBar = renderProgressBar(50, false, false, 'white');
+assert(whiteBar.includes('\x1b[38;2;255;255;255m') && whiteBar.includes('\x1b[38;2;75;75;75m'), '2b.11 White progress bar renders pure white filled and charcoal empty blocks');
 
 // ----------------------------------------------------
 // Test Group 3: CLI Subprocess Integration (Piped stdin)

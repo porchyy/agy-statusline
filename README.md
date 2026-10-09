@@ -1,19 +1,19 @@
 # ⚡ agy-statusline
 
-> **แถบแสดงสถานะ (Custom Statusline) สไตล์ Coral Minimal สำหรับ Google Antigravity CLI (AGY)**  
-> สวยงาม มินิมอล เบาเครื่อง และไม่มี Dependency ภายนอกแม้แต่ตัวเดียว (Zero Dependencies)
+> **แถบแสดงสถานะ (Custom Statusline) สไตล์ White Minimal สำหรับ Google Antigravity CLI (AGY)**  
+> สวยงาม มินิมอล สีขาวคมชัด เบาเครื่อง และไม่มี Dependency ภายนอกแม้แต่ตัวเดียว (Zero Dependencies)
 
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-107%2F107%20Passed-success.svg)](tests/run-tests.js)
-[![Theme](https://img.shields.io/badge/Theme-Coral%20Minimal-orange.svg)](src/config.js)
+[![Theme](https://img.shields.io/badge/Theme-White%20Minimal-white.svg)](src/config.js)
 
 ---
 
 ## 📸 ภาพตัวอย่างหน้าตา (Preview)
 
-### 🎨 สไตล์หลัก: Andrewii23 Coral Minimal (ค่าเริ่มต้น)
-ได้รับแรงบันดาลใจจากธีมยอดนิยม `@andrewii23/claude-statusline` ใช้โทนสีส้มคอรัล (Coral/Salmon Truecolor `RGB 221, 129, 97`) และหลอดพลังสัญลักษณ์บล็อก `▆`:
+### 🎨 สไตล์หลัก: White Minimal (ค่าเริ่มต้น)
+ดีไซน์สีขาวสะอาดตา คมชัดระดับ Truecolor Pure White พร้อมหลอดพลังสัญลักษณ์บล็อก `▆` และตัวคั่น Dim:
 
 ```text
 ✦ Claude 3.7 Sonnet [working] | ▆▆▆▆▆▆▆▆▆▆ 1.41% | 14.8k/1.05M · 1.03M left | Quota | ▆▆▆▆▆▆▆▆▆▆ 85% left | resets in 2h
@@ -74,9 +74,10 @@ agy
 ```javascript
 export const CONFIG = {
   // สลับธีมได้ระหว่าง:
-  // 'andrewii23' -> ธีม Coral Minimal สไตล์โมเดิร์น (ค่าเริ่มต้น)
-  // 'classic'    -> ธีมแบบดั้งเดิมมีวงเล็บเหลี่ยม [Model] | [Context]
-  theme: 'andrewii23',
+  // 'white'      -> ธีม White Minimal สีขาวคมชัดโมเดิร์น (ค่าเริ่มต้น)
+  // 'andrewii23' -> ธีม Coral Minimal โทนส้มคอรัลสไตล์ Andrewii23
+  // 'classic'    -> ธีม Classic Bracketed แบบดั้งเดิม [Model] | [Context]
+  theme: 'white',
 
   // แยกการแสดงผลเป็น 2 บรรทัด (true / false)
   // บรรทัดที่ 1: ข้อมูลโมเดลและ Context

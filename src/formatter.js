@@ -32,22 +32,28 @@ export function isColorDisabled(env = process.env) {
 export function formatStatusline(parsed, options = {}) {
   const disableColor = options.noColor ?? isColorDisabled();
   const useAscii = options.ascii ?? (process.env.TERM === 'dumb');
-  const theme = options.theme ?? CONFIG.theme ?? 'andrewii23';
+  const theme = options.theme ?? CONFIG.theme ?? 'white';
   const multiline = options.multiline ?? CONFIG.multiline ?? false;
 
   if (theme === 'classic') {
     return formatClassic(parsed, { disableColor, useAscii });
   }
 
-  return formatAndrewii23(parsed, { disableColor, useAscii, multiline });
+  return formatAndrewii23(parsed, { disableColor, useAscii, multiline, theme });
 }
 
 /**
- * Format statusline using Andrewii23 Minimal Coral style.
+ * Format statusline using Minimal Powerline style (White or Coral).
  */
-function formatAndrewii23(parsed, { disableColor, useAscii, multiline }) {
+function formatAndrewii23(parsed, { disableColor, useAscii, multiline, theme = 'white' }) {
   const plainSep = ' | ';
   const activeSep = disableColor ? plainSep : (CONFIG.dimSeparator || plainSep);
+  const palette = CONFIG.themes?.[theme] || CONFIG.themes?.white || {
+    barFilled: '\x1b[38;2;255;255;255m',
+    barEmpty: '\x1b[38;2;75;75;75m',
+    text: '\x1b[38;2;255;255;255m',
+    dim: '\x1b[38;2;160;160;160m',
+  };
 
   // 1. Model & State
   let modelPart = '';
@@ -58,7 +64,7 @@ function formatAndrewii23(parsed, { disableColor, useAscii, multiline }) {
       const stateLabel = CONFIG.stateAscii[parsed.state] || parsed.state;
       label += ` [${stateLabel}]`;
     }
-    modelPart = colorize(label, CONFIG.ansi.white, disableColor);
+    modelPart = colorize(label, palette.text, disableColor);
   } else if (parsed?.state) {
     const stateLabel = CONFIG.stateAscii[parsed.state] || parsed.state;
     modelPart = colorize(`[Agent: ${stateLabel}]`, CONFIG.ansi.gray, disableColor);
@@ -68,8 +74,8 @@ function formatAndrewii23(parsed, { disableColor, useAscii, multiline }) {
   const contextParts = [];
   if (parsed?.context) {
     const ctx = parsed.context;
-    const bar = renderProgressBar(ctx.usedPercentage ?? 0, useAscii, disableColor, 'andrewii23');
-    const pct = colorize(`${ctx.usedPercentage ?? 0}%`, CONFIG.ansi.white, disableColor);
+    const bar = renderProgressBar(ctx.usedPercentage ?? 0, useAscii, disableColor, theme);
+    const pct = colorize(`${ctx.usedPercentage ?? 0}%`, palette.text, disableColor);
 
     let tokens = '';
     const dot = useAscii ? CONFIG.icons.asciiDot : CONFIG.icons.middleDot;
@@ -81,7 +87,7 @@ function formatAndrewii23(parsed, { disableColor, useAscii, multiline }) {
       tokens = `${formatTokenNumber(ctx.totalTokens)}`;
     }
 
-    const tokensStyled = colorize(tokens, CONFIG.ansi.white, disableColor);
+    const tokensStyled = colorize(tokens, palette.text, disableColor);
     contextParts.push(`${bar} ${pct}`);
     if (tokensStyled) {
       contextParts.push(tokensStyled);
@@ -92,8 +98,8 @@ function formatAndrewii23(parsed, { disableColor, useAscii, multiline }) {
   const quotaParts = [];
   if (parsed?.quota && parsed.quota.percentage !== null) {
     const q = parsed.quota;
-    const quotaBar = renderProgressBar(q.percentage, useAscii, disableColor, 'andrewii23');
-    const remPct = colorize(`${q.percentage}% left`, CONFIG.ansi.white, disableColor);
+    const quotaBar = renderProgressBar(q.percentage, useAscii, disableColor, theme);
+    const remPct = colorize(`${q.percentage}% left`, palette.text, disableColor);
 
     let resetText = '';
     if (q.resetInSeconds !== null) {
@@ -103,8 +109,8 @@ function formatAndrewii23(parsed, { disableColor, useAscii, multiline }) {
       resetText = trimmed.startsWith('resets') ? trimmed : `resets in ${trimmed}`;
     }
 
-    const quotaLabel = colorize('Quota', CONFIG.ansi.white, disableColor);
-    const resetStyled = colorize(resetText, CONFIG.ansi.dim, disableColor);
+    const quotaLabel = colorize('Quota', palette.text, disableColor);
+    const resetStyled = colorize(resetText, palette.dim, disableColor);
 
     quotaParts.push(quotaLabel);
     quotaParts.push(`${quotaBar} ${remPct}`);
@@ -246,7 +252,7 @@ function colorize(text, ansiCode, disableColor) {
 /**
  * Render visual progress bar.
  */
-export function renderProgressBar(percentage, useAscii = false, disableColor = false, theme = 'andrewii23') {
+export function renderProgressBar(percentage, useAscii = false, disableColor = false, theme = 'white') {
   const len = CONFIG.progressBar.length;
   const pct = Math.max(0, Math.min(100, percentage));
   let filledCount = Math.round((pct / 100) * len);
@@ -260,18 +266,23 @@ export function renderProgressBar(percentage, useAscii = false, disableColor = f
   }
 
   if (disableColor) {
-    const filledChar = theme === 'andrewii23' ? '▆' : '▰';
+    const filledChar = theme === 'classic' ? '▰' : '▆';
     const emptyChar = '░';
     return `${filledChar.repeat(filledCount)}${emptyChar.repeat(emptyCount)}`;
   }
 
-  if (theme === 'andrewii23') {
-    const filledPart = `${CONFIG.ansi.coral}${'▆'.repeat(filledCount)}`;
-    const emptyPart = `${CONFIG.ansi.coralEmpty}${'▆'.repeat(emptyCount)}`;
-    return `${filledPart}${emptyPart}${CONFIG.ansi.reset}`;
+  if (theme === 'classic') {
+    return `${'▰'.repeat(filledCount)}${'░'.repeat(emptyCount)}`;
   }
 
-  return `${'▰'.repeat(filledCount)}${'░'.repeat(emptyCount)}`;
+  const palette = CONFIG.themes?.[theme] || CONFIG.themes?.white || {
+    barFilled: '\x1b[38;2;255;255;255m',
+    barEmpty: '\x1b[38;2;75;75;75m',
+  };
+
+  const filledPart = `${palette.barFilled}${'▆'.repeat(filledCount)}`;
+  const emptyPart = `${palette.barEmpty}${'▆'.repeat(emptyCount)}`;
+  return `${filledPart}${emptyPart}${CONFIG.ansi.reset}`;
 }
 
 /**
