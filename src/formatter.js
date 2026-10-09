@@ -34,18 +34,20 @@ export function formatStatusline(parsed, options = {}) {
   const useAscii = options.ascii ?? (process.env.TERM === 'dumb');
   const theme = options.theme ?? CONFIG.theme ?? 'white';
   const multiline = options.multiline ?? CONFIG.multiline ?? false;
+  const showModel = options.showModel ?? CONFIG.showModel ?? false;
+  const showState = options.showState ?? CONFIG.showState ?? false;
 
   if (theme === 'classic') {
     return formatClassic(parsed, { disableColor, useAscii });
   }
 
-  return formatAndrewii23(parsed, { disableColor, useAscii, multiline, theme });
+  return formatAndrewii23(parsed, { disableColor, useAscii, multiline, theme, showModel, showState });
 }
 
 /**
  * Format statusline using Minimal Powerline style (White or Coral).
  */
-function formatAndrewii23(parsed, { disableColor, useAscii, multiline, theme = 'white' }) {
+function formatAndrewii23(parsed, { disableColor, useAscii, multiline, theme = 'white', showModel = false, showState = false }) {
   const plainSep = ' | ';
   const activeSep = disableColor ? plainSep : (CONFIG.dimSeparator || plainSep);
   const palette = CONFIG.themes?.[theme] || CONFIG.themes?.white || {
@@ -55,17 +57,17 @@ function formatAndrewii23(parsed, { disableColor, useAscii, multiline, theme = '
     dim: '\x1b[38;2;160;160;160m',
   };
 
-  // 1. Model & State
+  // 1. Model & State (Omitted by default since AGY CLI already displays them in header)
   let modelPart = '';
-  if (parsed?.model) {
+  if (showModel && parsed?.model) {
     const icon = useAscii ? CONFIG.icons.asciiModel : CONFIG.icons.model;
     let label = `${icon} ${parsed.model}`;
-    if (parsed?.state && parsed.state !== 'idle') {
+    if (showState && parsed?.state && parsed.state !== 'idle') {
       const stateLabel = CONFIG.stateAscii[parsed.state] || parsed.state;
       label += ` [${stateLabel}]`;
     }
     modelPart = colorize(label, palette.text, disableColor);
-  } else if (parsed?.state) {
+  } else if (showState && parsed?.state) {
     const stateLabel = CONFIG.stateAscii[parsed.state] || parsed.state;
     modelPart = colorize(`[Agent: ${stateLabel}]`, CONFIG.ansi.gray, disableColor);
   }

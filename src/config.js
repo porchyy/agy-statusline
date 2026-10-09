@@ -8,6 +8,10 @@ export const CONFIG = {
   theme: 'white',
   multiline: false,
 
+  // Display toggles (AGY CLI already displays model and state in the UI header)
+  showModel: false,
+  showState: false,
+
   // Theme palettes
   themes: {
     white: {

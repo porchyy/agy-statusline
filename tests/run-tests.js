@@ -332,7 +332,9 @@ console.log('\n🎨 Group 2b: Formatter Tests (Andrewii23 Coral Theme)');
 
 // 2b.1 Single-line Andrewii23 output
 const andrewFullOut = formatStatusline(fullParsed, { noColor: true, theme: 'andrewii23' });
-assert(andrewFullOut.includes('✦ Gemini 3.8 Flash (High) [working]'), '2b.1 Andrewii23 includes model name with active state');
+assert(!andrewFullOut.includes('Gemini') && !andrewFullOut.includes('working'), '2b.1 Andrewii23 omits redundant model name and state by default');
+const andrewWithModel = formatStatusline(fullParsed, { noColor: true, theme: 'andrewii23', showModel: true, showState: true });
+assert(andrewWithModel.includes('✦ Gemini 3.8 Flash (High) [working]'), '2b.1b Andrewii23 includes model name and state when showModel/showState enabled');
 assert(andrewFullOut.includes('1.41%') && andrewFullOut.includes('14.8k/1.05M · 1.03M left'), '2b.2 Andrewii23 includes context bar and token counts');
 assert(andrewFullOut.includes('Quota') && andrewFullOut.includes('85% left'), '2b.3 Andrewii23 includes quota bar and percentage');
 assert(andrewFullOut.includes('resets in 2h'), '2b.4 Andrewii23 includes reset duration');
@@ -341,7 +343,7 @@ assert(!andrewFullOut.includes('\n'), '2b.5 Andrewii23 single-line output contai
 // 2b.2 Andrewii23 Multi-line Output
 const andrewMultiOut = formatStatusline(fullParsed, { noColor: true, theme: 'andrewii23', multiline: true });
 assert(andrewMultiOut.includes('\n'), '2b.6 Andrewii23 multi-line outputs separated rows');
-assert(andrewMultiOut.startsWith('✦ Gemini 3.8 Flash (High) [working]'), '2b.7 Row 1 starts with model');
+assert(andrewMultiOut.includes('1.41%'), '2b.7 Row 1 contains context metrics');
 assert(andrewMultiOut.includes('Current | '), '2b.8 Row 2 starts with Current quota row');
 
 // 2b.3 Dynamic collapse in Andrewii23
@@ -374,7 +376,7 @@ function runCLIWithStdin(inputString, envOverrides = {}) {
 
 // 3.1 Piped full payload
 const pipeFull = runCLIWithStdin(fs.readFileSync(path.join(FIXTURES_DIR, 'full-payload.json'), 'utf8'), { NO_COLOR: '1' });
-assert(pipeFull.stdout.trim().includes('Gemini 3.8 Flash (High)'), '3.1 CLI processes full payload via stdin');
+assert(pipeFull.stdout.trim().includes('1.41%') && pipeFull.stdout.trim().includes('Quota'), '3.1 CLI processes full payload via stdin with context and quota');
 assert(pipeFull.status === 0, '3.1b Full payload CLI exits with code 0');
 assert(pipeFull.stderr === '', '3.1c Full payload CLI produces 0 stderr output');
 assert(!pipeFull.stdout.trim().includes('\n'), '3.1d Full payload CLI stdout is strictly a single line');
@@ -400,7 +402,7 @@ assert(pipeNoColor.stderr === '', '3.4c NO_COLOR CLI produces 0 stderr output');
 // 3.5 Piped long model name via subprocess
 const longModelPayload = JSON.stringify({ model: { display_name: longModel } });
 const pipeLongModel = runCLIWithStdin(longModelPayload, { NO_COLOR: '1' });
-assert(pipeLongModel.stdout.trim().includes(longModel), '3.5 CLI processes long model name cleanly');
+assert(pipeLongModel.stdout.trim() === '[AGY]', '3.5 CLI falls back to [AGY] when model is omitted and metrics are absent');
 assert(pipeLongModel.status === 0, '3.5b Long model name CLI exits with code 0');
 assert(pipeLongModel.stderr === '', '3.5c Long model name CLI produces 0 stderr output');
 assert(!pipeLongModel.stdout.trim().includes('\n'), '3.5d Long model name CLI output is strictly single-line');
