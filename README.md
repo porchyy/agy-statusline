@@ -119,10 +119,34 @@ Simulate an AGY CLI payload pipe:
 Get-Content tests/fixtures/full-payload.json | node src/index.js
 ```
 
-Expected output:
+Expected output (Andrewii23 Coral Minimal Style):
 ```text
-[✦ Gemini 3.8 Flash (High)] | [Agent: working] | [Context: 14.8k/1.05M used · 1.03M left (1.41%) ▰░░░░░░░░░] | [Quota: 85% left · Used 15% · resets in 2h]
+✦ Gemini 3.8 Flash (High) [working] | ▆▆▆▆▆▆▆▆▆▆ 1.41% | 14.8k/1.05M · 1.03M left | Quota | ▆▆▆▆▆▆▆▆▆▆ 85% left | resets in 2h
 ```
+
+---
+
+## Themes & Customization
+
+You can customize the visual theme in `src/config.js`:
+
+```javascript
+export const CONFIG = {
+  // 'andrewii23' (coral minimal powerline) or 'classic' (bracketed)
+  theme: 'andrewii23',
+
+  // Set true to separate Model/Context and Quota into 2 rows
+  multiline: false,
+  ...
+};
+```
+
+1. **Andrewii23 Theme (Default)**:
+   Minimalist layout inspired by `@andrewii23/claude-statusline` using lower block glyphs (`▆`), Truecolor Salmon/Coral palette (`RGB 221, 129, 97`), and dim ` | ` separators.
+2. **Classic Theme**:
+   Traditional bracketed layout `[✦ Model] | [Agent: ...] | [Context: ...] | [Quota: ...]`.
+3. **Multi-Row Mode (`multiline: true`)**:
+   Splits Model/Context onto Line 1 and Current Quota onto Line 2.
 
 ---
 

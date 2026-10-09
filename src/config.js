@@ -4,10 +4,14 @@
  */
 
 export const CONFIG = {
+  // Active visual theme: 'andrewii23' (coral minimal) or 'classic' (bracketed)
+  theme: 'andrewii23',
+  multiline: false,
+
   // Progress bar dimensions
   progressBar: {
     length: 10,
-    filledGlyph: '▰',
+    filledGlyph: '▆',
     emptyGlyph: '░',
     asciiFilledGlyph: '=',
     asciiEmptyGlyph: '-',
@@ -55,11 +59,14 @@ export const CONFIG = {
     },
   },
 
-  // ANSI escape codes (16-color standard for universal terminal compatibility)
+  // ANSI escape codes (16-color standard and Truecolor RGB)
   ansi: {
     reset: '\x1b[0m',
     bold: '\x1b[1m',
     dim: '\x1b[2m',
+    white: '\x1b[38;2;220;220;220m',
+    coral: '\x1b[38;2;221;129;97m',
+    coralEmpty: '\x1b[38;2;80;60;50m',
     cyan: '\x1b[36m',
     green: '\x1b[32m',
     yellow: '\x1b[33m',
@@ -71,6 +78,7 @@ export const CONFIG = {
 
   // Visual separators
   separator: ' | ',
+  dimSeparator: ' \x1b[2m|\x1b[0m ',
   brackets: {
     open: '[',
     close: ']',

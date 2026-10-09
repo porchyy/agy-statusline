@@ -32,7 +32,114 @@ export function isColorDisabled(env = process.env) {
 export function formatStatusline(parsed, options = {}) {
   const disableColor = options.noColor ?? isColorDisabled();
   const useAscii = options.ascii ?? (process.env.TERM === 'dumb');
+  const theme = options.theme ?? CONFIG.theme ?? 'andrewii23';
+  const multiline = options.multiline ?? CONFIG.multiline ?? false;
 
+  if (theme === 'classic') {
+    return formatClassic(parsed, { disableColor, useAscii });
+  }
+
+  return formatAndrewii23(parsed, { disableColor, useAscii, multiline });
+}
+
+/**
+ * Format statusline using Andrewii23 Minimal Coral style.
+ */
+function formatAndrewii23(parsed, { disableColor, useAscii, multiline }) {
+  const plainSep = ' | ';
+  const activeSep = disableColor ? plainSep : (CONFIG.dimSeparator || plainSep);
+
+  // 1. Model & State
+  let modelPart = '';
+  if (parsed?.model) {
+    const icon = useAscii ? CONFIG.icons.asciiModel : CONFIG.icons.model;
+    let label = `${icon} ${parsed.model}`;
+    if (parsed?.state && parsed.state !== 'idle') {
+      const stateLabel = CONFIG.stateAscii[parsed.state] || parsed.state;
+      label += ` [${stateLabel}]`;
+    }
+    modelPart = colorize(label, CONFIG.ansi.white, disableColor);
+  } else if (parsed?.state) {
+    const stateLabel = CONFIG.stateAscii[parsed.state] || parsed.state;
+    modelPart = colorize(`[Agent: ${stateLabel}]`, CONFIG.ansi.gray, disableColor);
+  }
+
+  // 2. Context Segment
+  const contextParts = [];
+  if (parsed?.context) {
+    const ctx = parsed.context;
+    const bar = renderProgressBar(ctx.usedPercentage ?? 0, useAscii, disableColor, 'andrewii23');
+    const pct = colorize(`${ctx.usedPercentage ?? 0}%`, CONFIG.ansi.white, disableColor);
+
+    let tokens = '';
+    const dot = useAscii ? CONFIG.icons.asciiDot : CONFIG.icons.middleDot;
+    if (ctx.totalTokens !== null && ctx.windowSize !== null && ctx.remainingTokens !== null) {
+      tokens = `${formatTokenNumber(ctx.totalTokens)}/${formatTokenNumber(ctx.windowSize)} ${dot} ${formatTokenNumber(ctx.remainingTokens)} left`;
+    } else if (ctx.totalTokens !== null && ctx.windowSize !== null) {
+      tokens = `${formatTokenNumber(ctx.totalTokens)}/${formatTokenNumber(ctx.windowSize)}`;
+    } else if (ctx.totalTokens !== null) {
+      tokens = `${formatTokenNumber(ctx.totalTokens)}`;
+    }
+
+    const tokensStyled = colorize(tokens, CONFIG.ansi.white, disableColor);
+    contextParts.push(`${bar} ${pct}`);
+    if (tokensStyled) {
+      contextParts.push(tokensStyled);
+    }
+  }
+
+  // 3. Quota Segment
+  const quotaParts = [];
+  if (parsed?.quota && parsed.quota.percentage !== null) {
+    const q = parsed.quota;
+    const quotaBar = renderProgressBar(q.percentage, useAscii, disableColor, 'andrewii23');
+    const remPct = colorize(`${q.percentage}% left`, CONFIG.ansi.white, disableColor);
+
+    let resetText = '';
+    if (q.resetInSeconds !== null) {
+      resetText = formatDuration(q.resetInSeconds);
+    } else if (typeof q.resetTime === 'string' && q.resetTime.trim().length > 0) {
+      const trimmed = q.resetTime.trim();
+      resetText = trimmed.startsWith('resets') ? trimmed : `resets in ${trimmed}`;
+    }
+
+    const quotaLabel = colorize('Quota', CONFIG.ansi.white, disableColor);
+    const resetStyled = colorize(resetText, CONFIG.ansi.dim, disableColor);
+
+    quotaParts.push(quotaLabel);
+    quotaParts.push(`${quotaBar} ${remPct}`);
+    if (resetStyled) {
+      quotaParts.push(resetStyled);
+    }
+  }
+
+  // Minimal fallback when empty
+  if (!modelPart && contextParts.length === 0 && quotaParts.length === 0) {
+    return colorize('[AGY]', CONFIG.ansi.gray, disableColor);
+  }
+
+  // Multi-line mode
+  if (multiline && quotaParts.length > 0) {
+    const row1 = [modelPart, ...contextParts].filter(Boolean).join(activeSep);
+    const row2 = ['Current', ...quotaParts.slice(1)].filter(Boolean).join(activeSep);
+    return `${row1}\n${row2}`;
+  }
+
+  // Single-line unified row (Andrewii23 Compact)
+  const allSegments = [
+    modelPart,
+    ...contextParts,
+    ...quotaParts,
+  ].filter(Boolean);
+
+  const result = allSegments.join(activeSep);
+  return sanitizeSingleLine(result);
+}
+
+/**
+ * Format statusline using Classic Bracketed style.
+ */
+function formatClassic(parsed, { disableColor, useAscii }) {
   const segments = [];
 
   // 1. Model Name Segment
@@ -54,7 +161,6 @@ export function formatStatusline(parsed, options = {}) {
     const ctx = parsed.context;
     const parts = [];
 
-    // Tokens string (e.g. 250k/1.0M used · 750k left, or fallback to 14.8k/1.0M / 14.8k)
     const dot = useAscii ? CONFIG.icons.asciiDot : CONFIG.icons.middleDot;
     if (ctx.totalTokens !== null && ctx.windowSize !== null && ctx.remainingTokens !== null) {
       const usedStr = `${formatTokenNumber(ctx.totalTokens)}/${formatTokenNumber(ctx.windowSize)} used`;
@@ -66,7 +172,6 @@ export function formatStatusline(parsed, options = {}) {
       parts.push(`${formatTokenNumber(ctx.totalTokens)}`);
     }
 
-    // Percentage string (e.g. 1.41%) and progress bar
     if (ctx.usedPercentage !== null) {
       let barColor = CONFIG.ansi.green;
       if (ctx.usedPercentage >= CONFIG.thresholds.context.danger) {
@@ -77,8 +182,7 @@ export function formatStatusline(parsed, options = {}) {
 
       parts.push(`(${ctx.usedPercentage}%)`);
 
-      // Progress bar without extra outer brackets
-      const bar = renderProgressBar(ctx.usedPercentage, useAscii);
+      const bar = renderProgressBar(ctx.usedPercentage, useAscii, disableColor, 'classic');
       parts.push(colorize(bar, barColor, disableColor));
     }
 
@@ -88,7 +192,7 @@ export function formatStatusline(parsed, options = {}) {
     }
   }
 
-  // 4. Quota Segment (Dynamic Collapse: ONLY rendered if quota data is present)
+  // 4. Quota Segment
   if (parsed?.quota && parsed.quota.percentage !== null) {
     const q = parsed.quota;
     const quotaParts = [];
@@ -100,15 +204,12 @@ export function formatStatusline(parsed, options = {}) {
       quotaColor = CONFIG.ansi.yellow;
     }
 
-    // Remaining percentage
     const remText = colorize(`${q.percentage}% left`, quotaColor, disableColor);
     quotaParts.push(remText);
 
-    // Used percentage: 100 - remaining
     const usedPercentage = Math.round((100 - q.percentage) * 10) / 10;
     quotaParts.push(`Used ${usedPercentage}%`);
 
-    // Reset duration/time
     if (q.resetInSeconds !== null) {
       const durationText = formatDuration(q.resetInSeconds);
       quotaParts.push(colorize(durationText, CONFIG.ansi.gray, disableColor));
@@ -123,16 +224,12 @@ export function formatStatusline(parsed, options = {}) {
     segments.push(`[${quotaLabel} ${quotaParts.join(` ${dot} `)}]`);
   }
 
-  // If no segments could be formed, return minimal fallback
   if (segments.length === 0) {
     return colorize('[AGY]', CONFIG.ansi.gray, disableColor);
   }
 
-  // Join segments with separator
   const separator = colorize(CONFIG.separator, CONFIG.ansi.gray, disableColor);
   const result = segments.join(separator);
-
-  // Guarantee strictly single-line output (strip newline characters)
   return sanitizeSingleLine(result);
 }
 
@@ -149,7 +246,7 @@ function colorize(text, ansiCode, disableColor) {
 /**
  * Render visual progress bar.
  */
-function renderProgressBar(percentage, useAscii) {
+export function renderProgressBar(percentage, useAscii = false, disableColor = false, theme = 'andrewii23') {
   const len = CONFIG.progressBar.length;
   const pct = Math.max(0, Math.min(100, percentage));
   let filledCount = Math.round((pct / 100) * len);
@@ -158,10 +255,23 @@ function renderProgressBar(percentage, useAscii) {
   }
   const emptyCount = Math.max(0, len - filledCount);
 
-  const filledChar = useAscii ? CONFIG.progressBar.asciiFilledGlyph : CONFIG.progressBar.filledGlyph;
-  const emptyChar = useAscii ? CONFIG.progressBar.asciiEmptyGlyph : CONFIG.progressBar.emptyGlyph;
+  if (useAscii) {
+    return `${CONFIG.progressBar.asciiFilledGlyph.repeat(filledCount)}${CONFIG.progressBar.asciiEmptyGlyph.repeat(emptyCount)}`;
+  }
 
-  return `${filledChar.repeat(filledCount)}${emptyChar.repeat(emptyCount)}`;
+  if (disableColor) {
+    const filledChar = theme === 'andrewii23' ? '▆' : '▰';
+    const emptyChar = '░';
+    return `${filledChar.repeat(filledCount)}${emptyChar.repeat(emptyCount)}`;
+  }
+
+  if (theme === 'andrewii23') {
+    const filledPart = `${CONFIG.ansi.coral}${'▆'.repeat(filledCount)}`;
+    const emptyPart = `${CONFIG.ansi.coralEmpty}${'▆'.repeat(emptyCount)}`;
+    return `${filledPart}${emptyPart}${CONFIG.ansi.reset}`;
+  }
+
+  return `${'▰'.repeat(filledCount)}${'░'.repeat(emptyCount)}`;
 }
 
 /**

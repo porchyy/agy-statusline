@@ -185,12 +185,13 @@ const extRemainingClamp = parsePayload({
 assert(extRemainingClamp.context?.remainingTokens === 200000, '1.30 External remaining_tokens clamped to window_size');
 
 // ----------------------------------------------------
-// Test Group 2: Formatter Tests
+// Test Group 2: Formatter Tests (Classic Bracketed Theme)
 // ----------------------------------------------------
-console.log('\n🎨 Group 2: Formatter Tests');
+console.log('\n🎨 Group 2: Formatter Tests (Classic Theme)');
+const formatClassic = (p, opts = {}) => formatStatusline(p, { theme: 'classic', ...opts });
 
 // 2.1 Full Payload Formatter
-const fullOutput = formatStatusline(fullParsed, { noColor: true });
+const fullOutput = formatClassic(fullParsed, { noColor: true });
 assert(fullOutput.includes('[✦ Gemini 3.8 Flash (High)]'), '2.1 Formatter includes model name with icon');
 assert(fullOutput.includes('[Agent: working]'), '2.2 Formatter includes agent state segment');
 assert(fullOutput.includes('[Context: 14.8k/1.05M used · 1.03M left (1.41%) ▰░░░░░░░░░]'), '2.3 Formatter includes context usage segment and bar with used and left tokens');
@@ -209,7 +210,7 @@ const targetPayload = {
   },
 };
 const targetParsed = parsePayload(targetPayload);
-const targetOutput = formatStatusline(targetParsed, { noColor: true });
+const targetOutput = formatClassic(targetParsed, { noColor: true });
 assert(
   targetOutput === '[✦ Gemini 3.8 Flash (High)] | [Agent: idle] | [Context: 250k/1.0M used · 750k left (25%) ▰▰▰░░░░░░░] | [Quota: 85% left · Used 15%]',
   '2.3b Exact Target UI format match'
@@ -224,68 +225,68 @@ const zeroLeftPayload = {
   },
 };
 const zeroLeftParsed = parsePayload(zeroLeftPayload);
-const zeroLeftOutput = formatStatusline(zeroLeftParsed, { noColor: true });
+const zeroLeftOutput = formatClassic(zeroLeftParsed, { noColor: true });
 assert(zeroLeftOutput.includes('200k/200k used · 0 left'), '2.3c Zero remaining tokens formatted as 0 left');
 
 assert(fullOutput.includes('[Quota: 85% left · Used 15% · resets in 2h]'), '2.4 Formatter includes full quota segment');
 assert(fullOutput.includes('resets in 2h'), '2.5 Formatter includes formatted reset time');
 
 // 2.2 Dynamic Collapse (No Quota)
-const noQuotaOutput = formatStatusline(noQuotaParsed, { noColor: true });
+const noQuotaOutput = formatClassic(noQuotaParsed, { noColor: true });
 assert(!noQuotaOutput.includes('Quota:'), '2.6 Quota segment completely omitted when quota is null');
 assert(!noQuotaOutput.endsWith(' | ') && !noQuotaOutput.includes(' |  | '), '2.7 No-quota output has no trailing or duplicate separator');
 
 // 2.3 Dynamic Collapse (No Context)
 const noContextRaw = JSON.parse(fs.readFileSync(path.join(FIXTURES_DIR, 'no-context.json'), 'utf8'));
 const noContextParsed = parsePayload(noContextRaw);
-const noContextOutput = formatStatusline(noContextParsed, { noColor: true });
+const noContextOutput = formatClassic(noContextParsed, { noColor: true });
 assert(!noContextOutput.includes('Context:'), '2.8 Context segment completely omitted when context is null');
 assert(!noContextOutput.includes(' |  | '), '2.9 No-context output has no duplicate separator');
 assert(noContextOutput.includes('[Quota: 100% left · Used 0% · resets in 4h]'), '2.10 No-context output preserves quota segment');
 
 // 2.4 Missing Segments (Model / Status)
 const noModelParsed = { model: null, state: 'working', context: { totalTokens: 5000, windowSize: 100000, usedPercentage: 5.0 }, quota: null };
-const noModelOutput = formatStatusline(noModelParsed, { noColor: true });
+const noModelOutput = formatClassic(noModelParsed, { noColor: true });
 assert(!noModelOutput.startsWith(' | '), '2.11 Missing model does not leave leading separator');
 assert(noModelOutput.startsWith('[Agent: working]'), '2.12 Missing model starts cleanly with agent state');
 
 const noStateParsed = { model: 'Gemini Pro', state: null, context: null, quota: null };
-const noStateOutput = formatStatusline(noStateParsed, { noColor: true });
+const noStateOutput = formatClassic(noStateParsed, { noColor: true });
 assert(noStateOutput === '[✦ Gemini Pro]', '2.13 Missing state leaves only model without trailing separator');
 
-const modelIdOnlyOutput = formatStatusline(modelIdOnlyParsed, { noColor: true });
+const modelIdOnlyOutput = formatClassic(modelIdOnlyParsed, { noColor: true });
 assert(modelIdOnlyOutput === '[✦ claude-3-5-sonnet]', '2.13b Formatter formats model with id fallback cleanly');
 
 // 2.5 Quota Edge Cases (remaining_fraction = 0, 0.5, 1)
 const qZeroParsed = parsePayload({ quota: { remaining_fraction: 0.0 } });
-const qZeroOutput = formatStatusline(qZeroParsed, { noColor: true });
+const qZeroOutput = formatClassic(qZeroParsed, { noColor: true });
 assert(qZeroOutput.includes('[Quota: 0% left · Used 100%]'), '2.14 remaining_fraction = 0 formats as 0% left · Used 100%');
 
 const qHalfParsed = parsePayload({ quota: { remaining_fraction: 0.5 } });
-const qHalfOutput = formatStatusline(qHalfParsed, { noColor: true });
+const qHalfOutput = formatClassic(qHalfParsed, { noColor: true });
 assert(qHalfOutput.includes('[Quota: 50% left · Used 50%]'), '2.15 remaining_fraction = 0.5 formats as 50% left · Used 50%');
 
 const qFullParsed = parsePayload({ quota: { remaining_fraction: 1.0 } });
-const qFullOutput = formatStatusline(qFullParsed, { noColor: true });
+const qFullOutput = formatClassic(qFullParsed, { noColor: true });
 assert(qFullOutput.includes('[Quota: 100% left · Used 0%]'), '2.16 remaining_fraction = 1.0 formats as 100% left · Used 0%');
 
 // 2.6 Quota Reset Time (Missing & Invalid)
 const qNoResetParsed = parsePayload({ quota: { remaining_fraction: 0.85 } });
-const qNoResetOutput = formatStatusline(qNoResetParsed, { noColor: true });
+const qNoResetOutput = formatClassic(qNoResetParsed, { noColor: true });
 assert(qNoResetOutput === '[Quota: 85% left · Used 15%]', '2.17 Missing reset time omits reset without trailing dot');
 
 const qInvalidResetParsed = parsePayload({ quota: { remaining_fraction: 0.85, reset_in_seconds: -10 } });
-const qInvalidResetOutput = formatStatusline(qInvalidResetParsed, { noColor: true });
+const qInvalidResetOutput = formatClassic(qInvalidResetParsed, { noColor: true });
 assert(qInvalidResetOutput === '[Quota: 85% left · Used 15%]', '2.18 Negative reset time is ignored safely');
 
 // 2.7 Context Window = 0 and Invalid Numerics
 const ctxZeroWinParsed = parsePayload({ context_window: { input_tokens: 14000, output_tokens: 600, context_window_size: 0 } });
-const ctxZeroWinOutput = formatStatusline(ctxZeroWinParsed, { noColor: true });
+const ctxZeroWinOutput = formatClassic(ctxZeroWinParsed, { noColor: true });
 assert(ctxZeroWinOutput.includes('[Context: 14.6k]'), '2.19 context_window_size = 0 displays token count without division by zero');
 assert(!ctxZeroWinOutput.includes('NaN') && !ctxZeroWinOutput.includes('Infinity'), '2.20 context_window_size = 0 output contains no NaN or Infinity');
 
 const ctxInvalidNumParsed = parsePayload({ context_window: { used_percentage: NaN, total_input_tokens: Infinity } });
-const ctxInvalidNumOutput = formatStatusline(ctxInvalidNumParsed, { noColor: true });
+const ctxInvalidNumOutput = formatClassic(ctxInvalidNumParsed, { noColor: true });
 assert(ctxInvalidNumOutput === '[AGY]', '2.21 Invalid numeric context payload safely falls back to [AGY]');
 
 // 2.8 Single-line Guarantee
@@ -293,19 +294,19 @@ assert(!fullOutput.includes('\n') && !fullOutput.includes('\r'), '2.22 Full outp
 assert(!noQuotaOutput.includes('\n') && !noQuotaOutput.includes('\r'), '2.23 No-quota output contains no internal newlines');
 
 // 2.9 Color vs NO_COLOR
-const colorOutput = formatStatusline(fullParsed, { noColor: false });
+const colorOutput = formatClassic(fullParsed, { noColor: false });
 assert(colorOutput.includes('\x1b['), '2.24 ANSI color codes present when color is enabled');
-const plainOutput = formatStatusline(fullParsed, { noColor: true });
+const plainOutput = formatClassic(fullParsed, { noColor: true });
 assert(!plainOutput.includes('\x1b['), '2.25 NO_COLOR strips all ANSI escape sequences');
 
 // 2.10 Minimal Fallback when data is empty
-const fallbackOutput = formatStatusline(emptyParsed, { noColor: true });
+const fallbackOutput = formatClassic(emptyParsed, { noColor: true });
 assert(fallbackOutput === '[AGY]', '2.26 Formatter outputs minimal [AGY] fallback for empty payload');
 
 // 2.11 Long Model Name Single-Line Safety
 const longModel = 'Very-Long-Model-Name-For-Experimental-Enterprise-Testing-v99.9';
 const longModelParsed = { model: longModel, state: 'idle', context: null, quota: null };
-const longModelOutput = formatStatusline(longModelParsed, { noColor: true });
+const longModelOutput = formatClassic(longModelParsed, { noColor: true });
 assert(!longModelOutput.includes('\n') && !longModelOutput.includes('\r'), '2.27 Long model name remains strictly single-line');
 assert(longModelOutput.includes(longModel), '2.28 Long model name formatted properly');
 
@@ -323,6 +324,29 @@ assert(formatTokenNumber(0) === '0', '2.38 0 tokens formats as 0');
 assert(formatTokenNumber(-100) === '0', '2.39 Negative tokens safely clamped to 0');
 assert(formatTokenNumber(NaN) === '0', '2.40 NaN safely formats as 0');
 assert(formatTokenNumber(Infinity) === '0', '2.41 Infinity safely formats as 0');
+
+// ----------------------------------------------------
+// Test Group 2b: Formatter Tests (Andrewii23 Coral Minimal Theme)
+// ----------------------------------------------------
+console.log('\n🎨 Group 2b: Formatter Tests (Andrewii23 Coral Theme)');
+
+// 2b.1 Single-line Andrewii23 output
+const andrewFullOut = formatStatusline(fullParsed, { noColor: true, theme: 'andrewii23' });
+assert(andrewFullOut.includes('✦ Gemini 3.8 Flash (High) [working]'), '2b.1 Andrewii23 includes model name with active state');
+assert(andrewFullOut.includes('1.41%') && andrewFullOut.includes('14.8k/1.05M · 1.03M left'), '2b.2 Andrewii23 includes context bar and token counts');
+assert(andrewFullOut.includes('Quota') && andrewFullOut.includes('85% left'), '2b.3 Andrewii23 includes quota bar and percentage');
+assert(andrewFullOut.includes('resets in 2h'), '2b.4 Andrewii23 includes reset duration');
+assert(!andrewFullOut.includes('\n'), '2b.5 Andrewii23 single-line output contains no internal newlines');
+
+// 2b.2 Andrewii23 Multi-line Output
+const andrewMultiOut = formatStatusline(fullParsed, { noColor: true, theme: 'andrewii23', multiline: true });
+assert(andrewMultiOut.includes('\n'), '2b.6 Andrewii23 multi-line outputs separated rows');
+assert(andrewMultiOut.startsWith('✦ Gemini 3.8 Flash (High) [working]'), '2b.7 Row 1 starts with model');
+assert(andrewMultiOut.includes('Current | '), '2b.8 Row 2 starts with Current quota row');
+
+// 2b.3 Dynamic collapse in Andrewii23
+const andrewNoQuotaOut = formatStatusline(noQuotaParsed, { noColor: true, theme: 'andrewii23' });
+assert(!andrewNoQuotaOut.includes('Quota'), '2b.9 Andrewii23 omits quota segment when absent');
 
 // ----------------------------------------------------
 // Test Group 3: CLI Subprocess Integration (Piped stdin)
@@ -344,7 +368,7 @@ function runCLIWithStdin(inputString, envOverrides = {}) {
 
 // 3.1 Piped full payload
 const pipeFull = runCLIWithStdin(fs.readFileSync(path.join(FIXTURES_DIR, 'full-payload.json'), 'utf8'), { NO_COLOR: '1' });
-assert(pipeFull.stdout.trim().includes('[✦ Gemini 3.8 Flash (High)]'), '3.1 CLI processes full payload via stdin');
+assert(pipeFull.stdout.trim().includes('Gemini 3.8 Flash (High)'), '3.1 CLI processes full payload via stdin');
 assert(pipeFull.status === 0, '3.1b Full payload CLI exits with code 0');
 assert(pipeFull.stderr === '', '3.1c Full payload CLI produces 0 stderr output');
 assert(!pipeFull.stdout.trim().includes('\n'), '3.1d Full payload CLI stdout is strictly a single line');
