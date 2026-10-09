@@ -48,9 +48,32 @@ AGY CLI reads custom statusline settings from its configuration file:
 
 > **Note on Path Quoting**: If the path to `agy-statusline` contains spaces or Unicode characters (e.g. Thai characters), ensure the inner path is enclosed in quotes as shown above.
 
-### 2. Automated PowerShell Setup (Windows)
+### 2. One-Command Automated Setup
 
-Run the following command from the `agy-statusline` directory in PowerShell. This safely updates `settings.json` without modifying any other user settings:
+From the `agy-statusline` repository directory, simply run:
+
+```powershell
+npm run setup
+# Or directly:
+node bin/install.js
+```
+
+This automatically:
+1. Detects your OS and finds `~/.gemini/antigravity-cli/settings.json`
+2. Creates an automatic backup (`settings.json.backup`)
+3. Resolves and properly quotes the script path (handling spaces and Unicode characters)
+4. Updates the `statusLine` configuration block cleanly without altering any other settings
+
+To uninstall or restore the default built-in statusline at any time:
+```powershell
+npm run uninstall
+# Or directly:
+node bin/install.js --uninstall
+```
+
+### 3. Manual PowerShell Setup (Alternative)
+
+If you prefer to configure manually via PowerShell:
 
 ```powershell
 # Resolve absolute path and normalize forward slashes

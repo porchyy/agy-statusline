@@ -5,10 +5,13 @@
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "agy-statusline": "./src/index.js"
+    "agy-statusline": "./src/index.js",
+    "agy-statusline-setup": "./bin/install.js"
   },
   "scripts": {
-    "test": "node tests/run-tests.js"
+    "test": "node tests/run-tests.js",
+    "setup": "node bin/install.js",
+    "uninstall": "node bin/install.js --uninstall"
   },
   "engines": {
     "node": ">=18.0.0"
