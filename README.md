@@ -49,7 +49,7 @@ cd agy-statusline
 ```powershell
 npm run setup
 ```
-*(หรือจะรันผ่าน Node โดยตรง: `node bin/install.js`)*
+*(หรือจะรันผ่าน Node โดยตรง: `node scripts/install.js`)*
 
 > ✨ **ตัวติดตั้งจะทำงานให้อัตโนมัติทุกอย่าง:**
 > - ค้นหาไฟล์ตั้งค่า `settings.json` ของ AGY ในเครื่องของคุณ
@@ -95,11 +95,11 @@ export const CONFIG = {
 ---
 
 ### 🗑️ วิธียกเลิกการติดตั้ง (คืนค่าเดิม)
-หากต้องการกลับไปใช้ statusline ดั้งเดิมของ AGY สามารถรัน:
+หากต้องการยกเลิกและคืนค่าเดิมของ AGY สามารถรัน:
 ```powershell
 npm run uninstall
 ```
-*(หรือ `node bin/install.js --uninstall`)* ระบบจะลบการตั้งค่าออกอย่างปลอดภัยและคืนค่าเริ่มต้นให้ทันที
+*(หรือ `node scripts/uninstall.js`)* ระบบจะนำไฟล์สำรอง (`settings.json.backup`) กลับมาวางคืนที่เดิม 100% ทันทีโดยไม่ต้องแก้ไฟล์เอง
 
 ---
 
@@ -110,13 +110,13 @@ npm run uninstall
 ### 💡 Overview
 **`agy-statusline`** is a high-reliability, zero-dependency custom statusline plugin tailored for **Google Antigravity CLI (AGY) v1.3.2+** across Windows, macOS, and Linux.
 
-It provides real-time visibility into AI context window consumption, token quotas, and active models without bloating your terminal or installing hefty `node_modules`.
+It provides real-time visibility into AI context window consumption and token quotas without bloating your terminal or installing hefty `node_modules`.
 
 ### 🌟 Key Features
 - **Zero External Dependencies**: Built entirely with Node.js standard libraries (`fs`, `child_process`). Instant execution, zero bundle overhead.
 - **Crash-Resilient (Fail-Safe)**: Always exits with status code `0`. Safely handles missing, null, or malformed JSON payloads, preventing AGY from auto-disabling the statusline.
 - **Prompt-Safe Single-Line Rendering**: Enforces strict single-line output sanitization to eliminate prompt flicker or unwanted line wraps.
-- **Dynamic Model Resolution**: Automatically reads `model.display_name` with fallback to `model.id` from live payloads.
+- **Safe Backup & Restore**: Mandatory automatic backup before installation, with 100% exact file restoration upon uninstallation.
 - **Granular Token Metrics**: Pre-calculates exact tokens and remaining window capacity (e.g. `1.03M left` instead of rounded approximations).
 - **Privacy First**: Zero telemetry, zero external network requests, zero raw data written to disk.
 
@@ -140,7 +140,7 @@ If you prefer manual setup, add the following block to your `~/.gemini/antigravi
 {
   "statusLine": {
     "type": "command",
-    "command": "node <absolute-path-to-agy-statusline>/src/index.js",
+    "command": "node <absolute-path-to-agy-statusline>/bin/agy-statusline.js",
     "padding": 0,
     "enabled": true,
     "stack_with_default": false

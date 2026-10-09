@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Zero-dependency automated installer for agy-statusline.
- * Automatically configures ~/.gemini/antigravity-cli/settings.json with backup and rollback support.
+ * Automatically backs up ~/.gemini/antigravity-cli/settings.json before applying configuration.
  */
 
 import fs from 'node:fs';
@@ -17,56 +17,41 @@ const homeDir = os.homedir();
 const configDir = path.join(homeDir, '.gemini', 'antigravity-cli');
 const settingsFile = path.join(configDir, 'settings.json');
 const backupFile = path.join(configDir, 'settings.json.backup');
-const entryPoint = path.resolve(__dirname, '..', 'src', 'index.js').replace(/\\/g, '/');
+const entryPoint = path.resolve(__dirname, '..', 'bin', 'agy-statusline.js').replace(/\\/g, '/');
 
-const isUninstall = process.argv.includes('--uninstall');
 const isDryRun = process.argv.includes('--dry-run');
 
 console.log('\n========================================');
-console.log(isUninstall ? ' 🗑️  agy-statusline Uninstaller' : ' 🚀 agy-statusline Installer');
+console.log(' 🚀 agy-statusline Installer');
 console.log('========================================\n');
 
 try {
-  // Ensure target directory exists
+  // Ensure target configuration directory exists
   if (!fs.existsSync(configDir)) {
     fs.mkdirSync(configDir, { recursive: true });
   }
 
-  // Load existing settings or initialize empty object
+  // 1. Mandatory Pre-installation Backup Protocol
+  if (fs.existsSync(settingsFile)) {
+    if (!isDryRun) {
+      fs.copyFileSync(settingsFile, backupFile);
+    }
+    console.log(`📦 Backup created: ${backupFile}`);
+  }
+
+  // 2. Load existing settings or initialize empty configuration
   let settings = {};
   if (fs.existsSync(settingsFile)) {
     try {
       const raw = fs.readFileSync(settingsFile, 'utf8');
       settings = JSON.parse(raw);
     } catch (_parseErr) {
-      console.warn('⚠️  Existing settings.json was malformed, creating fresh configuration.');
+      console.warn('⚠️  Existing settings.json was malformed, starting with clean configuration.');
       settings = {};
     }
   }
 
-  if (isUninstall) {
-    if (settings.statusLine || settings.statusline) {
-      delete settings.statusLine;
-      delete settings.statusline;
-
-      if (!isDryRun) {
-        fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2), 'utf8');
-      }
-      console.log('✔ Successfully removed custom statusline from settings.json.');
-      console.log('✔ Restored AGY CLI to default built-in statusline.\n');
-    } else {
-      console.log('ℹ️  No custom statusline found in settings.json. Nothing to remove.\n');
-    }
-    process.exit(0);
-  }
-
-  // 1. Create backup if settings file exists
-  if (fs.existsSync(settingsFile) && !isDryRun) {
-    fs.copyFileSync(settingsFile, backupFile);
-    console.log(`📦 Backup created: ${backupFile}`);
-  }
-
-  // 2. Configure statusLine block
+  // 3. Configure statusLine block pointing to bin executable
   settings.statusLine = {
     type: 'command',
     command: `node ${entryPoint}`,
@@ -80,7 +65,7 @@ try {
   }
 
   console.log(`✔ Configured settings: ${settingsFile}`);
-  console.log(`✔ Command: node ${entryPoint}`);
+  console.log(`✔ Executable Command: node ${entryPoint}`);
   console.log('\n🎉 Installation complete! Open your terminal and run:');
   console.log('   agy\n');
 } catch (err) {

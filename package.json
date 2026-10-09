@@ -1,17 +1,16 @@
 {
   "name": "agy-statusline",
   "version": "1.0.0",
-  "description": "Coral Minimal custom statusline for Google Antigravity CLI (AGY) with zero external dependencies",
+  "description": "White Minimal custom statusline for Google Antigravity CLI (AGY) with zero external dependencies",
   "type": "module",
   "main": "src/index.js",
   "bin": {
-    "agy-statusline": "./src/index.js",
-    "agy-statusline-setup": "./bin/install.js"
+    "agy-statusline": "./bin/agy-statusline.js"
   },
   "scripts": {
     "test": "node tests/run-tests.js",
-    "setup": "node bin/install.js",
-    "uninstall": "node bin/install.js --uninstall"
+    "setup": "node scripts/install.js",
+    "uninstall": "node scripts/uninstall.js"
   },
   "engines": {
     "node": ">=18.0.0"
