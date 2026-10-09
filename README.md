@@ -5,7 +5,7 @@
 
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-107%2F107%20Passed-success.svg)](tests/run-tests.js)
+[![Tests](https://img.shields.io/badge/Tests-109%2F109%20Passed-success.svg)](tests/run-tests.js)
 [![Theme](https://img.shields.io/badge/Theme-White%20Minimal-white.svg)](src/config.js)
 
 ---
@@ -16,7 +16,7 @@
 ดีไซน์สีขาวสะอาดตา คมชัดระดับ Truecolor Pure White พร้อมหลอดพลังสัญลักษณ์บล็อก `▆` และตัวคั่น Dim:
 
 ```text
-✦ Claude 3.7 Sonnet [working] | ▆▆▆▆▆▆▆▆▆▆ 1.41% | 14.8k/1.05M · 1.03M left | Quota | ▆▆▆▆▆▆▆▆▆▆ 85% left | resets in 2h
+✦ Gemini 3.8 Flash [working] | ▆▆▆▆▆▆▆▆▆▆ 1.41% | 14.8k/1.05M · 1.03M left | Quota | ▆▆▆▆▆▆▆▆▆▆ 85% left | resets in 2h
 ```
 
 ```
@@ -30,7 +30,7 @@
 ### ❓ agy-statusline คืออะไร?
 เมื่อใช้งาน **Google Antigravity CLI (`agy`)** ปกติหน้าจอเทอร์มินัลอาจไม่แสดงข้อมูลการใช้งานอย่างละเอียด  
 **`agy-statusline`** จะเข้ามาแทนที่แถบด้านล่าง เพื่อบอกข้อมูลสำคัญที่คุณต้องรู้ขณะเขียนโค้ดแบบเรียลไทม์:
-1. **โมเดลที่ใช้อยู่ (Active Model):** แสดงชื่อโมเดลปัจจุบันอัตโนมัติ เช่น `✦ Claude 3.7 Sonnet` หรือ `✦ Gemini 3.8 Flash`
+1. **โมเดลที่ใช้อยู่ (Active Model):** แสดงชื่อโมเดลปัจจุบันอัตโนมัติ เช่น `✦ Gemini 3.8 Flash` หรือ `✦ GPT-4o`
 2. **สถานะ Agent:** บอกว่ากำลังทำงาน (`[working]`) หรือรอคำสั่ง
 3. **หลอด Context Window:** แสดงแถบระดับความจำที่ใช้ไป พร้อมคำนวณ Token ที่ใช้แล้ว และจำนวนที่เหลืออยู่อย่างละเอียด (เช่น `1.03M left`)
 4. **โควต้าที่เหลือ (Quota):** แสดงเปอร์เซ็นต์โควต้าที่เหลือ พร้อมหลอดสี และเวลานับถอยหลังก่อนรีเซ็ต (เช่น `resets in 2h`) ซ่อนอัตโนมัติถ้าโมเดลนั้นไม่มีโควต้าจำกัด
@@ -63,7 +63,7 @@ npm run setup
 ```powershell
 agy
 ```
-คุณจะเห็นแถบสถานะ Coral สวยงามขึ้นมาที่ด้านล่างทันที! 🎉
+คุณจะเห็นแถบสถานะสีขาวสะอาดตาสวยงามขึ้นมาที่ด้านล่างทันที! 🎉
 
 ---
 
@@ -150,7 +150,7 @@ If you prefer manual setup, add the following block to your `~/.gemini/antigravi
 
 ### 🧪 Testing & Verification
 
-Run the built-in test suite (107 automated unit and integration tests):
+Run the built-in test suite (109 automated unit and integration tests):
 ```bash
 npm test
 ```
