@@ -69,7 +69,7 @@ try {
   // 2. Configure statusLine block
   settings.statusLine = {
     type: 'command',
-    command: `node "${entryPoint}"`,
+    command: `node ${entryPoint}`,
     padding: 0,
     enabled: true,
     stack_with_default: false,
@@ -80,7 +80,7 @@ try {
   }
 
   console.log(`✔ Configured settings: ${settingsFile}`);
-  console.log(`✔ Command: node "${entryPoint}"`);
+  console.log(`✔ Command: node ${entryPoint}`);
   console.log('\n🎉 Installation complete! Open your terminal and run:');
   console.log('   agy\n');
 } catch (err) {
