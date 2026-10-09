@@ -1,7 +1,7 @@
 {
   "name": "agy-statusline",
   "version": "1.0.0",
-  "description": "Zero-dependency custom statusline for Antigravity CLI (AGY)",
+  "description": "Coral Minimal custom statusline for Google Antigravity CLI (AGY) with zero external dependencies",
   "type": "module",
   "main": "src/index.js",
   "bin": {

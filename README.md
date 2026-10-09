@@ -1,44 +1,143 @@
-# agy-statusline
+# ⚡ agy-statusline
 
-A high-reliability, zero-dependency custom statusline for **Google Antigravity CLI (AGY) v1.3.2+** on Windows, macOS, and Linux.
+> **แถบแสดงสถานะ (Custom Statusline) สไตล์ Coral Minimal สำหรับ Google Antigravity CLI (AGY)**  
+> สวยงาม มินิมอล เบาเครื่อง และไม่มี Dependency ภายนอกแม้แต่ตัวเดียว (Zero Dependencies)
 
-Displays a compact, single-line usage dashboard including active AI model name, agent state, context window usage (used / limit / remaining / percentage with visual progress bar), and quota remaining with dynamic collapse.
-
----
-
-## Key Features & Design Principles
-
-* **Zero External Dependencies**: Implemented purely with Node.js standard libraries (`fs`, `child_process`). No `node_modules` required.
-* **Crash-Resilient & Non-Blocking**: Always exits with status `0` and handles missing, null, or malformed JSON payloads gracefully, preventing AGY's auto-disable mechanism.
-* **Prompt-Safe Single-Line Rendering**: Strictly cleans all carriage returns and newlines (`\r`, `\n`) to guarantee a single-line output, ensuring the terminal prompt line is never distorted or wrapped unexpectedly.
-* **Dynamic Model Resolution**: Reads `model.display_name` with fallback to `model.id` from live payloads. Never hardcodes model names.
-* **High-Precision Context Display**: Calculates tokens and remaining capacity from raw payload values before formatting. Automatically shows granular values (e.g., `1.03M left` instead of confusing `1.0M left`).
-* **Dynamic Quota Collapse**: Omit the quota segment automatically when using unmetered models or when quota data is unavailable.
-* **Privacy & Security First**: Strictly zero raw stdin logging to disk, zero network telemetry, and zero credentials capture.
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/Tests-107%2F107%20Passed-success.svg)](tests/run-tests.js)
+[![Theme](https://img.shields.io/badge/Theme-Coral%20Minimal-orange.svg)](src/config.js)
 
 ---
 
-## System Requirements
+## 📸 ภาพตัวอย่างหน้าตา (Preview)
 
-* **Node.js**: `>= 18.0.0` (Verify with `node -v`)
-* **Antigravity CLI (AGY)**: `>= v1.3.2` (Verify with `agy --help` or `agy`)
-* **Operating System**: Windows (PowerShell / Command Prompt), Linux, or macOS
+### 🎨 สไตล์หลัก: Andrewii23 Coral Minimal (ค่าเริ่มต้น)
+ได้รับแรงบันดาลใจจากธีมยอดนิยม `@andrewii23/claude-statusline` ใช้โทนสีส้มคอรัล (Coral/Salmon Truecolor `RGB 221, 129, 97`) และหลอดพลังสัญลักษณ์บล็อก `▆`:
+
+```text
+✦ Claude 3.7 Sonnet [working] | ▆▆▆▆▆▆▆▆▆▆ 1.41% | 14.8k/1.05M · 1.03M left | Quota | ▆▆▆▆▆▆▆▆▆▆ 85% left | resets in 2h
+```
+
+```
+[ โมเดล AI ] [ สถานะ ]   | [ หลอด Context ] % | [ Tokens ที่ใช้ / ขีดจำกัด · เหลือ ] | [ โควต้า ] | [ หลอด Quota ] % | [ เวลารีเซ็ต ]
+```
 
 ---
 
-## Installation & Configuration
+## 🇹🇭 คำอธิบายและคู่มือภาษาไทย
 
-AGY CLI reads custom statusline settings from its configuration file:
-* **Windows**: `$HOME\.gemini\antigravity-cli\settings.json`
-* **macOS / Linux**: `~/.gemini/antigravity-cli/settings.json`
+### ❓ agy-statusline คืออะไร?
+เมื่อใช้งาน **Google Antigravity CLI (`agy`)** ปกติหน้าจอเทอร์มินัลอาจไม่แสดงข้อมูลการใช้งานอย่างละเอียด  
+**`agy-statusline`** จะเข้ามาแทนที่แถบด้านล่าง เพื่อบอกข้อมูลสำคัญที่คุณต้องรู้ขณะเขียนโค้ดแบบเรียลไทม์:
+1. **โมเดลที่ใช้อยู่ (Active Model):** แสดงชื่อโมเดลปัจจุบันอัตโนมัติ เช่น `✦ Claude 3.7 Sonnet` หรือ `✦ Gemini 3.8 Flash`
+2. **สถานะ Agent:** บอกว่ากำลังทำงาน (`[working]`) หรือรอคำสั่ง
+3. **หลอด Context Window:** แสดงแถบระดับความจำที่ใช้ไป พร้อมคำนวณ Token ที่ใช้แล้ว และจำนวนที่เหลืออยู่อย่างละเอียด (เช่น `1.03M left`)
+4. **โควต้าที่เหลือ (Quota):** แสดงเปอร์เซ็นต์โควต้าที่เหลือ พร้อมหลอดสี และเวลานับถอยหลังก่อนรีเซ็ต (เช่น `resets in 2h`) ซ่อนอัตโนมัติถ้าโมเดลนั้นไม่มีโควต้าจำกัด
 
-### 1. StatusLine Configuration Schema
+---
 
+### 🚀 วิธีติดตั้ง (ง่ายที่สุดใน 1 นาที)
+
+#### ขั้นตอนที่ 1: ดาวน์โหลดโปรเจกต์
+เปิด Terminal (PowerShell หรือ Command Prompt) แล้วรันคำสั่ง:
+```bash
+git clone https://github.com/porchyy/agy-statusline.git
+cd agy-statusline
+```
+
+#### ขั้นตอนที่ 2: รันคำสั่งติดตั้งอัตโนมัติ
+รันคำสั่งเพียงคำสั่งเดียว:
+```powershell
+npm run setup
+```
+*(หรือจะรันผ่าน Node โดยตรง: `node bin/install.js`)*
+
+> ✨ **ตัวติดตั้งจะทำงานให้อัตโนมัติทุกอย่าง:**
+> - ค้นหาไฟล์ตั้งค่า `settings.json` ของ AGY ในเครื่องของคุณ
+> - สร้างไฟล์สำรอง `settings.json.backup` ไว้ให้เสมอเพื่อความปลอดภัย
+> - ผูกคำสั่งเปิดใช้งาน statusline ให้ทันทีโดยไม่ต้องก็อปปี้โค้ดเอง
+
+#### ขั้นตอนที่ 3: เปิดใช้งาน
+เปิดเทอร์มินัลใหม่ แล้วพิมพ์:
+```powershell
+agy
+```
+คุณจะเห็นแถบสถานะ Coral สวยงามขึ้นมาที่ด้านล่างทันที! 🎉
+
+---
+
+### ⚙️ การตั้งค่าและเปลี่ยนธีม (Customization)
+
+คุณสามารถปรับแต่งหน้าตาได้ง่ายๆ ที่ไฟล์ [`src/config.js`](src/config.js):
+
+```javascript
+export const CONFIG = {
+  // สลับธีมได้ระหว่าง:
+  // 'andrewii23' -> ธีม Coral Minimal สไตล์โมเดิร์น (ค่าเริ่มต้น)
+  // 'classic'    -> ธีมแบบดั้งเดิมมีวงเล็บเหลี่ยม [Model] | [Context]
+  theme: 'andrewii23',
+
+  // แยกการแสดงผลเป็น 2 บรรทัด (true / false)
+  // บรรทัดที่ 1: ข้อมูลโมเดลและ Context
+  // บรรทัดที่ 2: ข้อมูล Quota
+  multiline: false,
+
+  // ความยาวของหลอดสถานะ (จำนวนบล็อก)
+  contextBarLength: 10,
+  quotaBarLength: 10,
+};
+```
+
+---
+
+### 🗑️ วิธียกเลิกการติดตั้ง (คืนค่าเดิม)
+หากต้องการกลับไปใช้ statusline ดั้งเดิมของ AGY สามารถรัน:
+```powershell
+npm run uninstall
+```
+*(หรือ `node bin/install.js --uninstall`)* ระบบจะลบการตั้งค่าออกอย่างปลอดภัยและคืนค่าเริ่มต้นให้ทันที
+
+---
+
+<br/>
+
+## 🌐 English Documentation
+
+### 💡 Overview
+**`agy-statusline`** is a high-reliability, zero-dependency custom statusline plugin tailored for **Google Antigravity CLI (AGY) v1.3.2+** across Windows, macOS, and Linux.
+
+It provides real-time visibility into AI context window consumption, token quotas, and active models without bloating your terminal or installing hefty `node_modules`.
+
+### 🌟 Key Features
+- **Zero External Dependencies**: Built entirely with Node.js standard libraries (`fs`, `child_process`). Instant execution, zero bundle overhead.
+- **Crash-Resilient (Fail-Safe)**: Always exits with status code `0`. Safely handles missing, null, or malformed JSON payloads, preventing AGY from auto-disabling the statusline.
+- **Prompt-Safe Single-Line Rendering**: Enforces strict single-line output sanitization to eliminate prompt flicker or unwanted line wraps.
+- **Dynamic Model Resolution**: Automatically reads `model.display_name` with fallback to `model.id` from live payloads.
+- **Granular Token Metrics**: Pre-calculates exact tokens and remaining window capacity (e.g. `1.03M left` instead of rounded approximations).
+- **Privacy First**: Zero telemetry, zero external network requests, zero raw data written to disk.
+
+---
+
+### 📦 Installation Guide
+
+#### 1. Automated Setup (Recommended)
+Clone the repository and run the setup script:
+```bash
+git clone https://github.com/porchyy/agy-statusline.git
+cd agy-statusline
+npm run setup
+```
+
+The script automatically detects your AGY configuration file (`~/.gemini/antigravity-cli/settings.json`), backs it up to `settings.json.backup`, and registers the statusline command.
+
+#### 2. Manual Configuration (Optional)
+If you prefer manual setup, add the following block to your `~/.gemini/antigravity-cli/settings.json`:
 ```json
 {
   "statusLine": {
     "type": "command",
-    "command": "node <path-to-agy-statusline>/src/index.js",
+    "command": "node <absolute-path-to-agy-statusline>/src/index.js",
     "padding": 0,
     "enabled": true,
     "stack_with_default": false
@@ -46,166 +145,32 @@ AGY CLI reads custom statusline settings from its configuration file:
 }
 ```
 
-### 2. One-Command Automated Setup
-
-From the `agy-statusline` repository directory, simply run:
-
-```powershell
-npm run setup
-# Or directly:
-node bin/install.js
-```
-
-This automatically:
-1. Detects your OS and finds `~/.gemini/antigravity-cli/settings.json`
-2. Creates an automatic backup (`settings.json.backup`)
-3. Resolves the script path
-4. Updates the `statusLine` configuration block cleanly without altering any other settings
-
-To uninstall or restore the default built-in statusline at any time:
-```powershell
-npm run uninstall
-# Or directly:
-node bin/install.js --uninstall
-```
-
-### 3. Manual PowerShell Setup (Alternative)
-
-If you prefer to configure manually via PowerShell:
-
-```powershell
-# Resolve absolute path and normalize forward slashes
-$scriptPath = (Resolve-Path ".\src\index.js").Path.Replace('\', '/')
-$settingsFile = Join-Path $HOME ".gemini\antigravity-cli\settings.json"
-
-# Load existing settings or initialize new object
-$settings = if (Test-Path $settingsFile) {
-    Get-Content $settingsFile -Raw -Encoding utf8 | ConvertFrom-Json
-} else {
-    [PSCustomObject]@{}
-}
-
-# Attach or update statusLine configuration
-$settings | Add-Member -NotePropertyName statusLine -NotePropertyValue ([PSCustomObject]@{
-    type = "command"
-    command = "node $scriptPath"
-    padding = 0
-    enabled = $true
-    stack_with_default = $false
-}) -Force
-
-# Save back with UTF-8 encoding
-$settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding utf8
-Write-Host "agy-statusline successfully configured in $settingsFile" -ForegroundColor Green
-```
-
 ---
 
-## Verification & Testing
+### 🧪 Testing & Verification
 
-### Offline Automated Tests
-Run the zero-dependency test suite to verify parsing, formatting, edge cases, and CLI subprocess execution:
-
-```powershell
-node tests/run-tests.js
+Run the built-in test suite (107 automated unit and integration tests):
+```bash
+npm test
 ```
 
-### Manual Pipe Verification
-Simulate an AGY CLI payload pipe:
-
+Test manually via piped payload:
 ```powershell
 Get-Content tests/fixtures/full-payload.json | node src/index.js
 ```
 
-Expected output (Andrewii23 Coral Minimal Style):
-```text
-✦ Gemini 3.8 Flash (High) [working] | ▆▆▆▆▆▆▆▆▆▆ 1.41% | 14.8k/1.05M · 1.03M left | Quota | ▆▆▆▆▆▆▆▆▆▆ 85% left | resets in 2h
-```
-
 ---
 
-## Themes & Customization
+### 🛠️ Troubleshooting & FAQ
 
-You can customize the visual theme in `src/config.js`:
-
-```javascript
-export const CONFIG = {
-  // 'andrewii23' (coral minimal powerline) or 'classic' (bracketed)
-  theme: 'andrewii23',
-
-  // Set true to separate Model/Context and Quota into 2 rows
-  multiline: false,
-  ...
-};
-```
-
-1. **Andrewii23 Theme (Default)**:
-   Minimalist layout inspired by `@andrewii23/claude-statusline` using lower block glyphs (`▆`), Truecolor Salmon/Coral palette (`RGB 221, 129, 97`), and dim ` | ` separators.
-2. **Classic Theme**:
-   Traditional bracketed layout `[✦ Model] | [Agent: ...] | [Context: ...] | [Quota: ...]`.
-3. **Multi-Row Mode (`multiline: true`)**:
-   Splits Model/Context onto Line 1 and Current Quota onto Line 2.
-
----
-
-## Daily Management & Controls
-
-### Temporary Disable
-To temporarily pause custom statusline without removing your configuration, set `"enabled": false` in `settings.json`:
-
-```powershell
-$settingsFile = Join-Path $HOME ".gemini\antigravity-cli\settings.json"
-$settings = Get-Content $settingsFile -Raw -Encoding utf8 | ConvertFrom-Json
-if ($settings.statusLine) {
-    $settings.statusLine.enabled = $false
-    $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding utf8
-    Write-Host "Custom statusline disabled." -ForegroundColor Yellow
-}
-```
-
-### Re-Enable
-Set `"enabled": true` using the same method.
-
-### Rollback to Default AGY Statusline
-To completely restore AGY's default built-in statusline without affecting any other settings:
-
-```powershell
-$settingsFile = Join-Path $HOME ".gemini\antigravity-cli\settings.json"
-$settings = Get-Content $settingsFile -Raw -Encoding utf8 | ConvertFrom-Json
-if ($settings.PSObject.Properties['statusLine']) {
-    $settings.PSObject.Properties.Remove('statusLine')
-    $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsFile -Encoding utf8
-    Write-Host "Rollback complete: Reverted to default built-in statusline." -ForegroundColor Green
-}
-```
-
----
-
-## Technical Constraints & Behavioral Notes
-
-1. **Event-Driven Invocations**:
-   AGY CLI v1.3.2 invokes the custom statusline on specific lifecycle events:
-   * Session initialization (`Manager.initStatusLine`)
-   * Turn completion (`Manager.onTurnEnded`)
-   * Dynamic model switching
-   * Git / VCS status refresh
-   
-   AGY CLI does **not** run a periodic background ticker while idle. The statusline does not simulate a fake countdown timer or poll external APIs during idle states.
-
-2. **Single Quota Bucket**:
-   The AGY CLI telemetry payload delivers a single active quota bucket (`quota.remaining_fraction`, `quota.reset_in_seconds`, `quota.reset_time`). There is no separate "weekly quota" field in v1.3.2; custom statusline does not fabricate synthetic quota buckets.
-
-3. **Auto-Disable Guard**:
-   If a custom statusline command fails 30 consecutive times, AGY CLI automatically disables it for the remainder of the session (`custom status line failed 30 times, disabling it`). `agy-statusline` prevents this by always exiting with code `0` and outputting `[AGY]` fallback on any unexpected error.
-
----
-
-## Troubleshooting
-
-| Problem | Probable Cause | Solution |
+| Problem / ปัญหา | สาเหตุ (Cause) | วิธีแก้ไข (Fix) |
 | :--- | :--- | :--- |
-| Statusline does not appear | Node.js not in PATH | Verify `node -v` works in terminal. |
-| Statusline does not appear | Path contains unquoted spaces | Ensure `node "<path>"` has inner escaped quotes in `settings.json`. |
-| Prompt line wraps or flickers | Multi-line string emitted | `agy-statusline` enforces single-line sanitize; verify terminal width `>= 80` cols. |
-| AGY falls back to default | `statusLine.enabled` is `false` | Check `settings.json` and set `"enabled": true`. |
-| No quota shown | Current model is unmetered | Normal behavior; statusline dynamically collapses missing quota segments. |
+| **Statusline ไม่แสดง** | เครื่องยังไม่ได้ลง Node.js หรือไม่ได้อยู่ใน PATH | ตรวจสอบว่าคำสั่ง `node -v` ใช้งานได้ใน Terminal |
+| **ขึ้น error `Cannot find module`** | มีเครื่องหมายคำพูดซ้อนใน `command` | รัน `npm run setup` อีกครั้ง ตัวติดตั้งเวอร์ชันใหม่จะแก้ path ให้ถูกต้องอัตโนมัติ |
+| **ตัวหนังสือขึ้นบรรทัดใหม่เลอะเทอะ** | หน้าต่าง Terminal แคบเกินไป | ปรับขนาดหน้าต่าง Terminal ให้กว้างอย่างน้อย 80 คอลัมน์ หรือตั้งค่า `multiline: true` ใน `config.js` |
+| **ไม่เห็นช่อง Quota** | โมเดลที่ใช้งานอยู่เป็น unmetered / ไม่มีโควต้าจำกัด | เป็นพฤติกรรมปกติ ระบบจะซ่อนส่วนที่ไม่จำเป็นอัตโนมัติ |
+
+---
+
+## 📄 License
+MIT © 2026 porchyy
