@@ -5,7 +5,7 @@
 
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-109%2F109%20Passed-success.svg)](tests/run-tests.js)
+[![Tests](https://img.shields.io/badge/Tests-131%2F131%20Passed-success.svg)](tests/run-tests.js)
 [![Theme](https://img.shields.io/badge/Theme-White%20Minimal-white.svg)](src/config.js)
 
 ---
@@ -91,6 +91,29 @@ export const CONFIG = {
   quotaBarLength: 10,
 };
 ```
+
+---
+
+### 🔔 ระบบแจ้งเตือนเมื่อ AI ทำงานเสร็จ (Completion Notification)
+แจ้งเตือนผ่าน Desktop Toast และเสียงแจ้งเตือนอัตโนมัติเมื่อ AI ประมวลผลเสร็จสิ้น (เปลี่ยนสถานะจากกำลังคิด/ทำงานเป็นพร้อมรับคำสั่งถัดไป):
+
+- **ทดสอบแจ้งเตือนทันที:**
+  ```powershell
+  npm run notify:test
+  ```
+- **เปิดใช้งานการแจ้งเตือน:**
+  ```powershell
+  npm run notify:on
+  ```
+- **ปิดการแจ้งเตือน:**
+  ```powershell
+  npm run notify:off
+  ```
+- **สลับเปิด/ปิด:**
+  ```powershell
+  npm run notify:toggle
+  ```
+*(หรือปรับที่ `notifications: { enabled: true/false }` ใน `src/config.js` หรือส่ง flag `--no-notify`)*
 
 ---
 

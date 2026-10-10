@@ -10,7 +10,11 @@
   "scripts": {
     "test": "node tests/run-tests.js",
     "setup": "node scripts/install.js",
-    "uninstall": "node scripts/uninstall.js"
+    "uninstall": "node scripts/uninstall.js",
+    "notify:test": "node scripts/test-notify.js",
+    "notify:on": "node scripts/toggle-notify.js on",
+    "notify:off": "node scripts/toggle-notify.js off",
+    "notify:toggle": "node scripts/toggle-notify.js"
   },
   "engines": {
     "node": ">=18.0.0"

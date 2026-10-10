@@ -12,6 +12,15 @@ export const CONFIG = {
   showModel: false,
   showState: false,
 
+  // Completion notification settings (notifies when AI finishes tasks)
+  notifications: {
+    enabled: true, // Toggle desktop & sound alerts on task completion
+    sound: true,   // Play system audio alert
+    desktop: true, // Native OS Desktop Toast notification
+    title: 'Antigravity (AGY)',
+    message: 'AI ทำงานเสร็จเรียบร้อยแล้ว!',
+  },
+
   // Theme palettes
   themes: {
     white: {

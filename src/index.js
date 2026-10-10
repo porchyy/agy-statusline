@@ -9,6 +9,7 @@
 import fs from 'node:fs';
 import { parsePayload } from './parser.js';
 import { formatStatusline } from './formatter.js';
+import { checkAndNotify } from './notifier.js';
 
 export function runStatusline() {
   let rawInput = '';
@@ -37,7 +38,14 @@ export function runStatusline() {
     process.exit(0);
   }
 
-  // 4. Format and print output
+  // 4. Trigger completion notification if AI just finished
+  try {
+    checkAndNotify(parsed.state);
+  } catch (_notifyErr) {
+    // Non-fatal: notification error never crashes statusline
+  }
+
+  // 5. Format and print output
   try {
     const statusline = formatStatusline(parsed);
     process.stdout.write(statusline + '\n');

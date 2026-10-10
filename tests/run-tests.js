@@ -5,10 +5,14 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { execSync, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parsePayload } from '../src/parser.js';
 import { formatStatusline, formatTokenNumber, renderProgressBar } from '../src/formatter.js';
+import { isNotificationEnabled, shouldTriggerNotification, checkAndNotify } from '../src/notifier.js';
+
+process.env.AGY_TEST = '1';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -406,6 +410,61 @@ assert(pipeLongModel.stdout.trim() === '[AGY]', '3.5 CLI falls back to [AGY] whe
 assert(pipeLongModel.status === 0, '3.5b Long model name CLI exits with code 0');
 assert(pipeLongModel.stderr === '', '3.5c Long model name CLI produces 0 stderr output');
 assert(!pipeLongModel.stdout.trim().includes('\n'), '3.5d Long model name CLI output is strictly single-line');
+
+// ----------------------------------------------------
+// Test Group 4: Completion Notifier Tests
+// ----------------------------------------------------
+console.log('🔔 Group 4: Completion Notifier Tests');
+
+// 4.1 CLI Flag and Env resolution
+assert(isNotificationEnabled([], {}) === true, '4.1 Default notification is enabled');
+assert(isNotificationEnabled(['--no-notify'], {}) === false, '4.2 --no-notify flag disables notifications');
+assert(isNotificationEnabled(['--notify'], {}) === true, '4.3 --notify flag forces notifications on');
+assert(isNotificationEnabled([], { AGY_NOTIFY: '0' }) === false, '4.4 AGY_NOTIFY=0 disables notifications');
+assert(isNotificationEnabled([], { AGY_NOTIFY: '1' }) === true, '4.5 AGY_NOTIFY=1 enables notifications');
+
+// 4.2 State transition detection
+assert(shouldTriggerNotification('thinking', 'idle') === true, '4.6 thinking -> idle triggers notification');
+assert(shouldTriggerNotification('working', 'idle') === true, '4.7 working -> idle triggers notification');
+assert(shouldTriggerNotification('tool_use', 'idle') === true, '4.8 tool_use -> idle triggers notification');
+assert(shouldTriggerNotification('idle', 'idle') === false, '4.9 idle -> idle does not trigger notification');
+assert(shouldTriggerNotification(null, 'idle') === false, '4.10 null -> idle does not trigger notification (initial boot)');
+assert(shouldTriggerNotification('thinking', 'working') === false, '4.11 thinking -> working does not trigger notification');
+assert(shouldTriggerNotification('working', null) === false, '4.12 working -> null does not trigger notification');
+
+// 4.3 State file lifecycle & mock trigger
+const testStateFile = path.join(os.tmpdir(), `.test-agy-state-${Date.now()}.json`);
+let triggeredCalls = 0;
+const mockTrigger = () => { triggeredCalls++; };
+
+try {
+  // Step A: Agent becomes working
+  const stepA = checkAndNotify('working', { enabled: true, stateFile: testStateFile, triggerFn: mockTrigger });
+  assert(stepA === false, '4.13 Step A: Becoming working does not trigger notification');
+  assert(triggeredCalls === 0, '4.13b Trigger was not called on working');
+  assert(fs.existsSync(testStateFile), '4.13c State file was persisted');
+
+  // Step B: Agent transitions to idle (task finished!)
+  const stepB = checkAndNotify('idle', { enabled: true, stateFile: testStateFile, triggerFn: mockTrigger });
+  assert(stepB === true, '4.14 Step B: Transition working -> idle fires notification');
+  assert(triggeredCalls === 1, '4.14b Trigger was called exactly once');
+
+  // Step C: Subsequent idle refresh (still idle)
+  const stepC = checkAndNotify('idle', { enabled: true, stateFile: testStateFile, triggerFn: mockTrigger });
+  assert(stepC === false, '4.15 Step C: Consecutive idle state does not fire duplicate notification');
+  assert(triggeredCalls === 1, '4.15b Trigger remains at exactly 1 call');
+
+  // Step D: When disabled, no notification is fired
+  let disabledCalls = 0;
+  checkAndNotify('working', { enabled: false, stateFile: testStateFile, triggerFn: () => { disabledCalls++; } });
+  const stepD = checkAndNotify('idle', { enabled: false, stateFile: testStateFile, triggerFn: () => { disabledCalls++; } });
+  assert(stepD === false, '4.16 Step D: Notification is suppressed when enabled is false');
+  assert(disabledCalls === 0, '4.16b Trigger was never called when disabled');
+} finally {
+  if (fs.existsSync(testStateFile)) {
+    try { fs.unlinkSync(testStateFile); } catch (_) {}
+  }
+}
 
 // ----------------------------------------------------
 // Summary
